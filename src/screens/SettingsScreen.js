@@ -7,6 +7,7 @@ import colors from '../theme/colors';
 import { AppContext } from '../context/AppContext';
 import CustomHeader from '../components/CustomHeader';
 import CurvedBottomBar from '../components/CurvedBottomBar';
+import { resetTour } from '../utils/tourManager';
 
 export default function SettingsScreen({ navigation }) {
   const context = useContext(AppContext);
@@ -220,6 +221,25 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.helpText}>Recipes reflect this preference automatically.</Text>
           </View>
 
+          {/* Tutorial */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Tutorial</Text>
+            <TouchableOpacity
+              style={styles.tutorialBtn}
+              onPress={async () => {
+                await resetTour();
+                Alert.alert(
+                  'Tutorial Reset',
+                  'The tutorial will show next time you open the app.',
+                  [{ text: 'OK' }]
+                );
+              }}
+            >
+              <Ionicons name="help-circle-outline" size={20} color="#fff" />
+              <Text style={styles.tutorialBtnText}>Show Tutorial</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Danger zone (hidden for anonymous users) */}
           {!isAnonymous && (
             <View style={styles.cardDanger}>
@@ -407,6 +427,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   supportBtnText: {
+    color: '#fff',
+    fontWeight: '800',
+  },
+  tutorialBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.orange_pantone[500],
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  tutorialBtnText: {
     color: '#fff',
     fontWeight: '800',
   },
