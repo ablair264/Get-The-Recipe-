@@ -38,6 +38,8 @@ WebBrowser.maybeCompleteAuthSession();
 
 import supabase from './src/services/supabase';
 import { convertIngredientsToUK, hasUSMeasurements } from './src/utils/measurementConverter';
+import { hasCompletedTour, markTourCompleted, tourSteps } from './src/utils/tourManager';
+import TourOverlay from './src/components/TourOverlay';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const { width, height } = Dimensions.get('window');
@@ -552,6 +554,11 @@ export default function App() {
   const [matching, setMatching] = useState(false);
   const [showBasketModal, setShowBasketModal] = useState(false);
 
+  // Tour state
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const navigationRef = useRef(null);
+
   // Check if Apple Sign In is available (iOS 13+)
   const [appleAuthAvailable, setAppleAuthAvailable] = useState(false);
   useEffect(() => {
@@ -581,6 +588,24 @@ export default function App() {
       else if (pref === 'us') setUseUKMeasurements(false);
     } catch (_) {}
   }, [user]);
+
+  // Check tour status when user logs in
+  useEffect(() => {
+    const checkTourStatus = async () => {
+      if (user && minSplashElapsed) {
+        const completed = await hasCompletedTour();
+        if (!completed) {
+          // Wait a bit after splash screen finishes
+          setTimeout(() => {
+            setShowTour(true);
+            setTourStep(0);
+          }, 500);
+        }
+      }
+    };
+
+    checkTourStatus();
+  }, [user, minSplashElapsed]);
 
   // Session check and URL handling
   useEffect(() => {
@@ -1434,6 +1459,65 @@ export default function App() {
 
   // Removed login/signup gate to allow core functionality without user interaction
 
+  // Tour navigation handlers
+  const handleTourNext = () => {
+    if (tourStep === tourSteps.length - 1) {
+      // Last step - complete tour
+      handleTourComplete();
+    } else {
+      const nextStep = tourStep + 1;
+      const nextStepData = tourSteps[nextStep];
+
+      // Navigate to required screen
+      if (navigationRef.current) {
+        if (nextStepData.screen === 'Recipe') {
+          // Navigate to RecipeScreen with sample data
+          navigationRef.current.navigate('Recipe', {
+            recipe: {
+              title: 'Sample Recipe',
+              ingredients: ['Sample ingredient'],
+              instructions: ['Sample instruction'],
+            }
+          });
+        } else if (nextStepData.screen === 'Book') {
+          navigationRef.current.navigate('Book');
+        } else if (nextStepData.screen === 'Pantry') {
+          navigationRef.current.navigate('Pantry');
+        }
+      }
+
+      setTourStep(nextStep);
+    }
+  };
+
+  const handleTourBack = () => {
+    if (tourStep > 0) {
+      const prevStep = tourStep - 1;
+      const prevStepData = tourSteps[prevStep];
+
+      // Navigate back if needed
+      if (navigationRef.current && prevStepData.screen === 'Parser') {
+        navigationRef.current.navigate('Parser');
+      }
+
+      setTourStep(prevStep);
+    }
+  };
+
+  const handleTourSkip = () => {
+    setShowTour(false);
+    markTourCompleted();
+  };
+
+  const handleTourComplete = () => {
+    setShowTour(false);
+    markTourCompleted();
+    // Navigate back to Parser
+    if (navigationRef.current) {
+      navigationRef.current.navigate('Parser');
+    }
+  };
+
   // Render main app via navigator + context (recipes open in their own screen)
   const contextValue = {
     API_BASE_URL,
@@ -1718,7 +1802,21 @@ export default function App() {
 
   return (
     <AppContext.Provider value={contextValue}>
-      <RootNavigator />
+      <RootNavigator navigationRef={navigationRef} />
+
+      {/* Tour overlay */}
+      <TourOverlay
+        visible={showTour}
+        currentStep={tourStep}
+        totalSteps={tourSteps.length}
+        tooltipText={tourSteps[tourStep]?.tooltipText}
+        tooltipPosition={tourSteps[tourStep]?.tooltipPosition}
+        highlightArea={tourSteps[tourStep]?.highlightArea}
+        onNext={handleTourNext}
+        onBack={handleTourBack}
+        onSkip={handleTourSkip}
+        isLastStep={tourStep === tourSteps.length - 1}
+      />
     </AppContext.Provider>
   );
 }

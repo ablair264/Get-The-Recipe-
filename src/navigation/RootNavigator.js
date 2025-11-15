@@ -15,9 +15,9 @@ import SettingsScreen from '../screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator();
 
-export default function RootNavigator() {
+export default function RootNavigator({ navigationRef }) {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Parser"
         screenOptions={{ headerShown: false }}
