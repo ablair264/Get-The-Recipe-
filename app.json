@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Defaff Recipes",
+    "slug": "recipe-parser-native",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/images/Logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#ffde59"
+    },
+    "scheme": "com.alastairblair.recipeparser",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alastairblair.recipeparser",
+      "buildNumber": "1",
+      "infoPlist": {
+        "UIBackgroundModes": ["background-processing", "background-fetch"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/Logo.png",
+        "backgroundColor": "#ffde59"
+      },
+      "package": "com.alastairblair.recipeparser",
+      "versionCode": 1,
+      "permissions": ["VIBRATE", "RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"]
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-notifications",
+      "expo-apple-authentication"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "46c6e86e-2e96-4237-b18e-2fc2b372397a"
+      }
+    },
+    "owner": "ablair264"
+  }
+}
